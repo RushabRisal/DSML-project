@@ -43,8 +43,5 @@ def clean_unit(unit: str):
     return unit
 
 df["Unit"] = df['Unit'].apply(clean_unit)
-
-# Drop duplicates if present
-df = df.drop_duplicates()
-
+df = df.sort_values(by='Date', ascending=True)
 df.to_csv('./data/cleanData.csv', index=False)
