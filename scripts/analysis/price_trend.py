@@ -17,15 +17,15 @@ daily_trend = trend_data.groupby(['Date', 'Commodity'])['Average'].mean().reset_
 commodities = daily_trend['Commodity'].unique()
 
 # Split commodities into groups of 10
-commodity_groups = [commodities[i:i + 10] for i in range(0, len(commodities), 10)]
+commodity_groups = [commodities[i:i + 1] for i in range(0, len(commodities), 1)]
 
 # Plot each group separately
 for i, group in enumerate(commodity_groups):
     plt.figure(figsize=(15, 8))
     sns.lineplot(data=daily_trend[daily_trend['Commodity'].isin(group)], x='Date', y='Average', hue='Commodity')
-    plt.title(f"Daily Price Trend for Commodities Group {i + 1}")
+    plt.title(f"Daily Price Trend for {group[0]}")
     plt.xlabel("Date")
     plt.ylabel("Average Price")
     plt.legend(title="Commodity")
-    plt.savefig(f"./visualizationFig/daily_price_trend/daily_price_trend_group_{i + 1}.png")  # Save the plot to a file
-    plt.close()  # Close the figure to avoid overlap
+    plt.savefig(f"./visualizationFig/price_trends/{group[0]}.png")
+    plt.close()
