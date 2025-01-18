@@ -44,4 +44,7 @@ def clean_unit(unit: str):
 
 df["Unit"] = df['Unit'].apply(clean_unit)
 
+# Drop duplicates if present
+df = df.drop_duplicates()
+
 df.to_csv('./data/cleanData.csv', index=False)
