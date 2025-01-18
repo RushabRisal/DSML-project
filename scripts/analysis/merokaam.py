@@ -36,4 +36,5 @@ for i in range(num_graphs):
     plt.tight_layout()
     
     # Show the plot
-    plt.show()
+    plt.savefig('./visualizationFig/daily_price_trend/daily_price.png')
+    plt.close()
