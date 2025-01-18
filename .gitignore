@@ -1,9 +1,2 @@
 env
 data/cleanData.csv
-models/
-visualizationFig/**/*.png
-visualizationFig/**/*.jpg
-visualizationFig/**/*.jpeg
-visualizationFig/*.png
-visualizationFig/*.jpg
-visualizationFig/*.jpeg

@@ -4,7 +4,7 @@ import seaborn as sns
 from scipy.stats import zscore
 #import the data and analyzing the whether it is completedly cleaned or not
 
-data=pd.read_csv('./data/cleanedData.csv')
+data=pd.read_csv('./data/cleanData.csv')
 # print(data.head())
 print(data[['Minimum','Maximum','Average']].describe())
 inconsitent_row  = data[(data['Minimum'] > data['Average']) | (data['Maximum'] < data['Average'])]
@@ -13,7 +13,7 @@ print(f'The inconsistent row is: {inconsitent_row.count()}')
 #checking the outliers
 visual_data= data[['Minimum','Maximum','Average']]
 sns.boxenplot(data = visual_data)
-# plt.savefig('./visualizationFig/boxplot.png')
+plt.savefig('./visualizationFig/boxplot.png')
 #finding out the outliers 
 data['zscore_min'] = zscore(data['Minimum'])
 data['zscore_max'] = zscore(data['Maximum'])
