@@ -1,2 +1,4 @@
 env
 data/cleanData.csv
+models/*
+visualizationFig/*

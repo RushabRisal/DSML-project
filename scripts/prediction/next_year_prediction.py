@@ -13,8 +13,8 @@ data = pd.DataFrame({'Date': ['2030-01-12']})
 new_data = pd.DataFrame({'ds': pd.to_datetime(data['Date'])})
 future = model.make_future_dataframe(periods= 500,freq='D')
 # Predict for the given data without extending the future
-forecast = model.predict(future)
-
+forecast = model.predict(future)[['ds','yhat','yhat_lower','yhat_upper']]
+print(forecast)
 
 #visuals of forecast 
 fig2= model.plot(forecast)
