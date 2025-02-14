@@ -27,6 +27,9 @@ duplicate = data[data.duplicated()]
 print(f'the duplicate values are: {duplicate}')
 
 #checking the distribution
-data[['Minimum','Maximum','Average']].hist(bins=40, figsize=(10,5))
-plt.savefig('./visualizationFig/histogram.png')
+# data[['Minimum','Maximum','Average']].hist(bins=40, figsize=(10,5))
+# plt.savefig('./visualizationFig/histogram.png')
 
+before_data=data[['Date','Average']]
+plt.scatter(before_data['Date'],before_data['Average'])
+plt.savefig('./visualizationFig/beforePlot.png')
