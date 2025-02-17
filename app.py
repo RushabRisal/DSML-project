@@ -39,6 +39,18 @@ def predict_price(commodity_name, target_date):
     forecast = model.predict(new_data)[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
     return forecast
 
+def classify_price_fluctuation(commodity_name, target_date):
+    model_path = os.path.join(model_dir, "price_fluctuation_model.joblib")
+    if not os.path.exists(model_path):
+        st.error("Price fluctuation model not found.")
+        return None
+    
+    model = joblib.load(model_path)
+    # Use the same feature names as during training
+    new_data = pd.DataFrame({'Average': [dataframe[dataframe['Commodity'] == commodity_name]['y'].mean()]})
+    prediction = model.predict(new_data)
+    return prediction[0]
+
 if st.button("Predict Price"):
     forecast = predict_price(commodity_name, target_date)
     if forecast is not None:
@@ -56,3 +68,8 @@ if st.button("Predict Price"):
         ax.set_xlabel("Year")
         ax.set_ylabel("Predicted Price (yhat)")
         st.pyplot(fig)
+
+if st.button("Classify Price Fluctuation"):
+    fluctuation = classify_price_fluctuation(commodity_name, target_date)
+    if fluctuation is not None:
+        st.write(f"Price fluctuation classification for {commodity_name} on {target_date}: {fluctuation}")
