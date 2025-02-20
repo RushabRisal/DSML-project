@@ -3,6 +3,8 @@ import pandas as pd
 import joblib
 import os
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.decomposition import PCA
 
 # Load dataset
 st.title("Vegetable Market Analysis and Prediction")
@@ -93,3 +95,63 @@ if st.button("Classify Price Fluctuation"):
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(fig)
+
+kmeans = joblib.load("./models/kmeans_model.joblib")
+scaler = joblib.load("./models/scaler.joblib")
+df_grouped = pd.read_csv("./data/clustered_commodities.csv")
+
+st.title("Commodity Cluster Predictor")
+
+# User inputs for commodity name and new average price
+commodity_input = st.text_input("Enter Commodity Name")
+user_avg_price = st.number_input("Enter Commodity Average Price", min_value=0.0, format="%.2f")
+
+if st.button("Predict Cluster"):
+    if commodity_input in df_grouped["Commodity"].values:
+        # Retrieve the stored min and max values for this commodity
+        record = df_grouped[df_grouped["Commodity"] == commodity_input].iloc[0]
+        original_min = record["Minimum"]
+        original_max = record["Maximum"]
+        input_features = np.array([[original_min, original_max, user_avg_price]])
+        scaled_input = scaler.transform(input_features)
+        
+        # Predict the cluster using the loaded K-means model
+        predicted_cluster = kmeans.predict(scaled_input)[0]
+        st.success(f"The commodity '{commodity_input}' with an average price of {user_avg_price} belongs to Cluster {predicted_cluster}.")
+        training_features = df_grouped[["Minimum", "Maximum", "Average"]].values
+        scaled_training = scaler.transform(training_features)
+        
+        # Apply PCA to reduce the dimensions to 2 for plotting
+        pca = PCA(n_components=2)
+        reduced_training = pca.fit_transform(scaled_training)
+        
+        # Transform the new commodity's scaled input with the same PCA model
+        reduced_new_point = pca.transform(scaled_input)
+        
+        # Create the scatter plot for training data
+        fig, ax = plt.subplots(figsize=(8, 6))
+        scatter = ax.scatter(
+            reduced_training[:, 0], 
+            reduced_training[:, 1], 
+            c=df_grouped['Cluster'], 
+            cmap='viridis', 
+            alpha=0.6, 
+            label="Existing Commodities"
+        )
+        ax.scatter(
+            reduced_new_point[0, 0], 
+            reduced_new_point[0, 1], 
+            c='red', 
+            marker='X', 
+            s=200, 
+            label="New Commodity"
+        )
+        
+        ax.set_xlabel("Overall Level")
+        ax.set_ylabel("Price Spread")
+        ax.set_title("Commodity Clusters with New Commodity Highlighted")
+        ax.legend()
+        
+        st.pyplot(fig)
+    else:
+        st.error("Commodity not found in dataset. Please check the name and try again.")
