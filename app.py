@@ -72,4 +72,24 @@ if st.button("Predict Price"):
 if st.button("Classify Price Fluctuation"):
     fluctuation = classify_price_fluctuation(commodity_name, target_date)
     if fluctuation is not None:
-        st.write(f"Price fluctuation classification for {commodity_name} on {target_date}: {fluctuation}")
+        fluctuation_text = "Expected to Increase" if fluctuation == 1 else "Expected to Decrease"
+        st.write(f"Price fluctuation prediction for {commodity_name} on {target_date}: {fluctuation_text}")
+        
+        # Get historical data for the selected commodity
+        commodity_data = dataframe[dataframe['Commodity'] == commodity_name]
+        
+        # Create visualization
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(pd.to_datetime(commodity_data['ds']), commodity_data['y'], label='Historical Prices')
+        ax.set_title(f"Historical Price Trends for {commodity_name}")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Price")
+        ax.legend()
+        
+        # Add a horizontal line for the mean price
+        mean_price = commodity_data['y'].mean()
+        ax.axhline(y=mean_price, color='r', linestyle='--', label='Mean Price')
+        
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        st.pyplot(fig)
