@@ -58,7 +58,13 @@ def classify_price_fluctuation(commodity_name, target_date):
 def plot_seasonal_decomposition(commodity_name):
     commodity_data = dataframe[dataframe['Commodity'] == commodity_name]
     commodity_data = commodity_data.set_index('ds')
-    result = seasonal_decompose(commodity_data['y'], model='additive', period=365)
+    n_obs = len(commodity_data['y'])
+    period = min(365, n_obs // 2)  # Adjust period based on the length of the data series
+
+    if n_obs < 2 * period:
+        raise ValueError(f"x must have 2 complete cycles requires {2 * period} observations. x only has {n_obs} observation(s)")
+
+    result = seasonal_decompose(commodity_data['y'], model='additive', period=period)
     
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(10, 8))
     result.observed.plot(ax=ax1)
