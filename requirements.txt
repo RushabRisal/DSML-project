@@ -47,6 +47,7 @@ seaborn==0.13.2
 six==1.17.0
 smmap==5.0.2
 stanio==0.5.1
+statsmodel==0.14.4
 streamlit==1.41.1
 tenacity==9.0.0
 threadpoolctl==3.5.0

@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
+from statsmodels.tsa.seasonal import seasonal_decompose
+import seaborn as sns
 
 # Load dataset
 st.title("Vegetable Market Analysis and Prediction")
@@ -53,6 +55,51 @@ def classify_price_fluctuation(commodity_name, target_date):
     prediction = model.predict(new_data)
     return prediction[0]
 
+def plot_seasonal_decomposition(commodity_name):
+    commodity_data = dataframe[dataframe['Commodity'] == commodity_name]
+    commodity_data = commodity_data.set_index('ds')
+    result = seasonal_decompose(commodity_data['y'], model='additive', period=365)
+    
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(10, 8))
+    result.observed.plot(ax=ax1)
+    ax1.set_ylabel('Observed')
+    result.trend.plot(ax=ax2)
+    ax2.set_ylabel('Trend')
+    result.seasonal.plot(ax=ax3)
+    ax3.set_ylabel('Seasonal')
+    result.resid.plot(ax=ax4)
+    ax4.set_ylabel('Residual')
+    plt.tight_layout()
+    st.pyplot(fig)
+
+def plot_correlation_heatmap():
+    # Filter the data to include only the top 10 commodities by average price
+    top_commodities = dataframe.groupby('Commodity')['y'].mean().nlargest(10).index
+    filtered_data = dataframe[dataframe['Commodity'].isin(top_commodities)]
+    
+    pivot_table = filtered_data.pivot_table(values='y', index='ds', columns='Commodity')
+    correlation_matrix = pivot_table.corr()
+    
+    fig, ax = plt.subplots(figsize=(12, 10))  # Increase the figure size
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', ax=ax, linewidths=.5)
+    ax.set_title('Correlation Heatmap of Top 10 Commodities')
+    st.pyplot(fig)
+
+def plot_moving_average(commodity_name, window=30):
+    commodity_data = dataframe[dataframe['Commodity'] == commodity_name]
+    commodity_data['Moving_Avg'] = commodity_data['y'].rolling(window=window).mean()
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(range(len(commodity_data)), commodity_data['y'], label='Original')
+    ax.plot(range(len(commodity_data)), commodity_data['Moving_Avg'], label='Moving Average', color='red')
+    ax.set_title(f'Moving Average (window={window}) for {commodity_name}')
+    ax.set_xlabel('Time Period')
+    ax.set_ylabel('Price')
+    ax.legend()
+    plt.xticks([])
+    plt.tight_layout()
+    st.pyplot(fig)
+
 if st.button("Predict Price"):
     forecast = predict_price(commodity_name, target_date)
     if forecast is not None:
@@ -95,6 +142,15 @@ if st.button("Classify Price Fluctuation"):
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(fig)
+
+if st.button("Seasonal Decomposition"):
+    plot_seasonal_decomposition(commodity_name)
+
+if st.button("Correlation Heatmap"):
+    plot_correlation_heatmap()
+
+if st.button("Moving Average"):
+    plot_moving_average(commodity_name)
 
 kmeans = joblib.load("./models/kmeans_model.joblib")
 scaler = joblib.load("./models/scaler.joblib")
