@@ -12,10 +12,19 @@ import seaborn as sns
 st.title("Vegetable Market Analysis and Prediction")
 st.text("Visualization of the data")
 
-dataframe = pd.read_csv('./data/cleanData.csv')
-st.dataframe(dataframe.head(100))
+# Define the specific commodities to display
+selected_commodities = [
+    'Amla', 'Apple(Fuji)', 'Apple(Jholey)', 'Arum', 'Asparagus',
+    'Avocado', 'Bakula', 'Bamboo Shoot', 'Banana', 'Barela'
+]
 
-description = dataframe.describe()
+# Load dataset and filter for selected commodities
+dataframe = pd.read_csv('./data/cleanData.csv')
+filtered_df = dataframe[dataframe['Commodity'].isin(selected_commodities)]
+
+st.dataframe(filtered_df.head(100))
+
+description = filtered_df.describe()
 st.write(description)
 
 # Model directory
@@ -55,22 +64,6 @@ def classify_price_fluctuation(commodity_name, target_date):
     prediction = model.predict(new_data)
     return prediction[0]
 
-def plot_seasonal_decomposition(commodity_name):
-    commodity_data = dataframe[dataframe['Commodity'] == commodity_name]
-    commodity_data = commodity_data.set_index('ds')
-    result = seasonal_decompose(commodity_data['y'], model='additive', period=365)
-    
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(10, 8))
-    result.observed.plot(ax=ax1)
-    ax1.set_ylabel('Observed')
-    result.trend.plot(ax=ax2)
-    ax2.set_ylabel('Trend')
-    result.seasonal.plot(ax=ax3)
-    ax3.set_ylabel('Seasonal')
-    result.resid.plot(ax=ax4)
-    ax4.set_ylabel('Residual')
-    plt.tight_layout()
-    st.pyplot(fig)
 
 def plot_correlation_heatmap():
     # Filter the data to include only the top 10 commodities by average price
@@ -97,6 +90,99 @@ def plot_moving_average(commodity_name, window=30):
     ax.set_ylabel('Price')
     ax.legend()
     plt.xticks([])
+    plt.tight_layout()
+    st.pyplot(fig)
+
+def calculate_seasonal_averages(commodity_name):
+    # Define the seasons
+    seasons = {
+        'Basanta': [3, 4],      # Chaitra & Baisakh (March-April)
+        'Grishma': [5, 6],      # Jestha & Asar (May-June)
+        'Barsha': [7, 8],       # Shrawan & Bhadra (July-August)
+        'Sharad': [9, 10],      # Ashoj & Kartik (September-October)
+        'Hemanta': [11, 12],    # Mangsir & Poush (November-December)
+        'Shishir': [1, 2]       # Magh & Falgun (January-February)
+    }
+    
+    # Filter the data for the selected commodity
+    commodity_data = dataframe[dataframe['Commodity'] == commodity_name].copy()
+
+    # Add a 'Season' column to the dataframe using .loc
+    commodity_data.loc[:, 'Season'] = commodity_data['ds'].apply(lambda x: next(season for season, months in seasons.items() if pd.to_datetime(x).month in months))
+
+    # Calculate seasonal averages
+    seasonal_averages = commodity_data.groupby(['Season'])['y'].mean().reset_index()
+
+    # Ensure all seasons are included
+    all_seasons = pd.DataFrame(list(seasons.keys()), columns=['Season'])
+    seasonal_averages = all_seasons.merge(seasonal_averages, on='Season', how='left').fillna(np.nan)
+
+    # Create a styled dataframe
+    def highlight_minmax(x):
+        if x == seasonal_averages['y'].max():
+            return 'background-color: #ffcdd2'  # light red
+        elif x == seasonal_averages['y'].min():
+            return 'background-color: #c8e6c9'  # light green
+        else:
+            return ''
+
+    styled_df = seasonal_averages.style.apply(lambda x: [highlight_minmax(v) for v in x], subset=['y'])
+
+    st.write(f"Seasonal Averages for {commodity_name}:")
+    # Set wider width for the table
+    st.dataframe(styled_df, width=800)
+
+def calculate_yearly_trends(commodity_name):
+    # Define the seasons
+    seasons = {
+        'Basanta': [3, 4],      # Chaitra & Baisakh (March-April)
+        'Grishma': [5, 6],      # Jestha & Asar (May-June)
+        'Barsha': [7, 8],       # Shrawan & Bhadra (July-August)
+        'Sharad': [9, 10],      # Ashoj & Kartik (September-October)
+        'Hemanta': [11, 12],    # Mangsir & Poush (November-December)
+        'Shishir': [1, 2]       # Magh & Falgun (January-February)
+    }
+    
+    # Filter the data for the selected commodity
+    commodity_data = dataframe[dataframe['Commodity'] == commodity_name].copy()
+    
+    # Add 'Year' and 'Season' columns to the dataframe
+    commodity_data.loc[:, 'Year'] = pd.to_datetime(commodity_data['ds']).dt.year
+    commodity_data.loc[:, 'Season'] = commodity_data['ds'].apply(lambda x: next(season for season, months in seasons.items() if pd.to_datetime(x).month in months))
+    
+    # Calculate yearly trends
+    yearly_trends = commodity_data.groupby(['Season', 'Year'])['y'].mean().reset_index()
+
+    # Ensure all seasons are included
+    all_seasons = pd.DataFrame(list(seasons.keys()), columns=['Season'])
+    yearly_trends = all_seasons.merge(yearly_trends, on='Season', how='left').fillna(0)
+    
+    # Create a styled dataframe
+    def highlight_minmax(x):
+        if x == yearly_trends['y'].max():
+            return 'background-color: #ffcdd2'  # light red
+        elif x == yearly_trends['y'].min():
+            return 'background-color: #c8e6c9'  # light green
+        else:
+            return ''
+
+    styled_df = yearly_trends.style.apply(lambda x: [highlight_minmax(v) for v in x], subset=['y'])
+
+    st.write(f"Yearly Trends for {commodity_name}:")
+    # Set wider width for the table
+    st.dataframe(styled_df, width=800)
+    
+    # Plot the yearly trends
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for season in yearly_trends['Season'].unique():
+        season_data = yearly_trends[yearly_trends['Season'] == season]
+        ax.plot(season_data['Year'], season_data['y'], marker='o', label=season)
+    
+    ax.set_title(f"Yearly Trends for {commodity_name}")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Average Price")
+    ax.legend(title="Season")
+    plt.xticks(yearly_trends['Year'].unique())
     plt.tight_layout()
     st.pyplot(fig)
 
@@ -143,14 +229,17 @@ if st.button("Classify Price Fluctuation"):
         plt.tight_layout()
         st.pyplot(fig)
 
-if st.button("Seasonal Decomposition"):
-    plot_seasonal_decomposition(commodity_name)
-
 if st.button("Correlation Heatmap"):
     plot_correlation_heatmap()
 
 if st.button("Moving Average"):
     plot_moving_average(commodity_name)
+
+if st.button("Calculate Seasonal Averages"):
+    calculate_seasonal_averages(commodity_name)
+
+if st.button("Calculate Yearly Trends"):
+    calculate_yearly_trends(commodity_name)
 
 kmeans = joblib.load("./models/kmeans_model.joblib")
 scaler = joblib.load("./models/scaler.joblib")

@@ -1,4 +1,4 @@
-env
-data/cleanData.csv
-models/*
-visualizationFig/*
+# env
+# data/cleanData.csv
+# models/*
+# visualizationFig/*
