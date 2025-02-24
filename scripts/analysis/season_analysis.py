@@ -101,7 +101,7 @@ def save_commodity_season_year_analysis(commodity_name, df, save_path):
     plt.close()
 
 # Example usage: Save plots for all commodities
-save_path = './visualizationFig'  # Path to save the plots
+save_path = './visualizationFig/Seasonal'  # Path to save the plots
 
 # Loop through all unique commodities in the dataset and save the plots for each one
 for commodity_name in data['Commodity'].unique():
