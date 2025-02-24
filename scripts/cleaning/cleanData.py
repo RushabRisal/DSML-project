@@ -3,12 +3,11 @@ from datetime import datetime
 
 df = pd.read_csv('./data/merged_tarkari_dataset.csv', low_memory=False)
 
-# First we will clean the value as in the field [minimum, maximum, average] is not uniform.
+# Clean values in minimum, maximum, average fields
 cleaning_data = df[['Minimum', 'Maximum', 'Average']]
 
-# Defining the function that removes all the str, space, and comma and converts to float or int 
 def clean_price(value):
-    if isinstance(value, str):  # Here the isinstance checks if the value is string or not
+    if isinstance(value, str):
         value = value.replace('Rs', '').replace(' ', '').replace(',', '')
     try:
         return float(value)
@@ -43,17 +42,15 @@ def clean_unit(unit: str):
 df["Unit"] = df['Unit'].apply(clean_unit)
 df = df.sort_values(by='Date', ascending=True)
 
-# Save the complete cleaned data to cleanDataAll.csv
+# Save complete cleaned data
 df.to_csv('./data/cleanDataAll.csv', index=False)
 
-# Define the specific commodities to keep
+# Define commodities to keep
 selected_commodities = [
     'Amla', 'Apple(Fuji)', 'Apple(Jholey)', 'Arum', 'Asparagus',
     'Avocado', 'Bakula', 'Bamboo Shoot', 'Banana', 'Barela'
 ]
 
-# Filter the dataframe to include only the selected commodities
+# Filter and save selected data
 filtered_df = df[df['Commodity'].isin(selected_commodities)]
-
-# Save the filtered data to cleanData.csv
 filtered_df.to_csv('./data/cleanData.csv', index=False)

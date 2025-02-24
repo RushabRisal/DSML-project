@@ -38,7 +38,7 @@ plt.savefig(os.path.join(vis_dir, f"elbow_method.png"))
 plt.show()
 
 # Step 5: Train the K-means Model
-optimal_k = 4  # Choose based on the elbow method plot
+optimal_k = 4  
 kmeans = KMeans(n_clusters=optimal_k, random_state=42)
 df_grouped['Cluster'] = kmeans.fit_predict(scaled_data)
 
