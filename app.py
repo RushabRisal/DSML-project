@@ -155,7 +155,7 @@ def calculate_yearly_trends(commodity_name):
 
     # Ensure all seasons are included
     all_seasons = pd.DataFrame(list(seasons.keys()), columns=['Season'])
-    yearly_trends = all_seasons.merge(yearly_trends, on='Season', how='left').fillna(0)
+    yearly_trends = all_seasons.merge(yearly_trends, on='Season', how='left').fillna(np.nan)
     
     # Create a styled dataframe
     def highlight_minmax(x):

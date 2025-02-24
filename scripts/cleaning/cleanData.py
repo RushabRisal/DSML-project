@@ -1,14 +1,14 @@
 import pandas as pd
 from datetime import datetime
 
-df=pd.read_csv('./data/merged_tarkari_dataset.csv', low_memory=False)
+df = pd.read_csv('./data/merged_tarkari_dataset.csv', low_memory=False)
 
-#first we will clean the value as in the field [minimum, maximum, average] is not uniform.
-cleaning_data= df[['Minimum','Maximum','Average']]
+# First we will clean the value as in the field [minimum, maximum, average] is not uniform.
+cleaning_data = df[['Minimum', 'Maximum', 'Average']]
 
-#defining the function that removes all the str, space, and comma and converts to float or int 
+# Defining the function that removes all the str, space, and comma and converts to float or int 
 def clean_price(value):
-    if isinstance(value, str): #here the isinstance checks if the value is string or not
+    if isinstance(value, str):  # Here the isinstance checks if the value is string or not
         value = value.replace('Rs', '').replace(' ', '').replace(',', '')
     try:
         return float(value)
@@ -18,8 +18,7 @@ def clean_price(value):
 for i in cleaning_data:
     df[i] = df[i].apply(clean_price)
 
-
-#function that parses the date
+# Function that parses the date
 def parse_date(date_str):
     for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y'):
         try:
@@ -29,19 +28,32 @@ def parse_date(date_str):
     return None
 
 df['Date'] = df['Date'].apply(parse_date)
-#changes the date to requried format
+# Changes the date to required format
 df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
-
 
 def clean_unit(unit: str):
     if unit == "Per Dozen" or unit == "Doz":
         return "dozen"
     if unit == "Per Piece" or unit == "Piece":
         return "piece"
-    if unit.lower() == "kg" :
+    if unit.lower() == "kg":
         return "kg"
     return unit
 
 df["Unit"] = df['Unit'].apply(clean_unit)
 df = df.sort_values(by='Date', ascending=True)
-df.to_csv('./data/cleanData.csv', index=False)
+
+# Save the complete cleaned data to cleanDataAll.csv
+df.to_csv('./data/cleanDataAll.csv', index=False)
+
+# Define the specific commodities to keep
+selected_commodities = [
+    'Amla', 'Apple(Fuji)', 'Apple(Jholey)', 'Arum', 'Asparagus',
+    'Avocado', 'Bakula', 'Bamboo Shoot', 'Banana', 'Barela'
+]
+
+# Filter the dataframe to include only the selected commodities
+filtered_df = df[df['Commodity'].isin(selected_commodities)]
+
+# Save the filtered data to cleanData.csv
+filtered_df.to_csv('./data/cleanData.csv', index=False)
