@@ -12,14 +12,14 @@ import seaborn as sns
 st.title("Vegetable Market Analysis and Prediction")
 st.text("Visualization of the data")
 
-# Define the specific commodities to display
+# Define only few commodities
 selected_commodities = [
     'Amla', 'Apple(Fuji)', 'Apple(Jholey)', 'Arum', 'Asparagus',
     'Avocado', 'Bakula', 'Bamboo Shoot', 'Banana', 'Barela'
 ]
 
-# Load dataset and filter for selected commodities
 dataframe = pd.read_csv('./data/cleanData.csv')
+# Filter for selected commodities
 filtered_df = dataframe[dataframe['Commodity'].isin(selected_commodities)]
 
 st.dataframe(filtered_df.head(100))
@@ -79,8 +79,9 @@ def plot_correlation_heatmap():
     st.pyplot(fig)
 
 def plot_moving_average(commodity_name, window=30):
-    commodity_data = dataframe[dataframe['Commodity'] == commodity_name]
-    commodity_data['Moving_Avg'] = commodity_data['y'].rolling(window=window).mean()
+    # Create a copy of the filtered data to avoid SettingWithCopyWarning
+    commodity_data = dataframe[dataframe['Commodity'] == commodity_name].copy()
+    commodity_data.loc[:, 'Moving_Avg'] = commodity_data['y'].rolling(window=window).mean()
     
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(range(len(commodity_data)), commodity_data['y'], label='Original')
@@ -96,12 +97,12 @@ def plot_moving_average(commodity_name, window=30):
 def calculate_seasonal_averages(commodity_name):
     # Define the seasons
     seasons = {
-        'Basanta': [3, 4],      # Chaitra & Baisakh (March-April)
-        'Grishma': [5, 6],      # Jestha & Asar (May-June)
-        'Barsha': [7, 8],       # Shrawan & Bhadra (July-August)
-        'Sharad': [9, 10],      # Ashoj & Kartik (September-October)
-        'Hemanta': [11, 12],    # Mangsir & Poush (November-December)
-        'Shishir': [1, 2]       # Magh & Falgun (January-February)
+        'Basanta': [3, 4],      # Chaitra & Baisakh
+        'Grishma': [5, 6],      # Jestha & Asar
+        'Barsha': [7, 8],       # Shrawan & Bhadra
+        'Sharad': [9, 10],      # Ashoj & Kartik
+        'Hemanta': [11, 12],    # Mangsir & Poush
+        'Shishir': [1, 2]       # Magh & Falgun
     }
     
     # Filter the data for the selected commodity
@@ -135,12 +136,12 @@ def calculate_seasonal_averages(commodity_name):
 def calculate_yearly_trends(commodity_name):
     # Define the seasons
     seasons = {
-        'Basanta': [3, 4],      # Chaitra & Baisakh (March-April)
-        'Grishma': [5, 6],      # Jestha & Asar (May-June)
-        'Barsha': [7, 8],       # Shrawan & Bhadra (July-August)
-        'Sharad': [9, 10],      # Ashoj & Kartik (September-October)
-        'Hemanta': [11, 12],    # Mangsir & Poush (November-December)
-        'Shishir': [1, 2]       # Magh & Falgun (January-February)
+        'Basanta': [3, 4],      # Chaitra & Baisakh
+        'Grishma': [5, 6],      # Jestha & Asar
+        'Barsha': [7, 8],       # Shrawan & Bhadra
+        'Sharad': [9, 10],      # Ashoj & Kartik
+        'Hemanta': [11, 12],    # Mangsir & Poush
+        'Shishir': [1, 2]       # Magh & Falgun
     }
     
     # Filter the data for the selected commodity
@@ -277,11 +278,18 @@ user_avg_price = st.number_input("Enter Commodity Average Price", min_value=0.0,
 
 if st.button("Predict Cluster"):
     if commodity_input in df_grouped["Commodity"].values:
-        # Retrieve the stored min and max values for this commodity
         record = df_grouped[df_grouped["Commodity"] == commodity_input].iloc[0]
         original_min = record["Minimum"]
         original_max = record["Maximum"]
-        input_features = np.array([[original_min, original_max, user_avg_price]])
+        
+        # Create DataFrame with proper feature names
+        input_features = pd.DataFrame({
+            'Minimum': [original_min],
+            'Maximum': [original_max],
+            'Average': [user_avg_price]
+        })
+        
+        # Transform with feature names preserved
         scaled_input = scaler.transform(input_features)
         
         # Predict the cluster using the loaded K-means model
