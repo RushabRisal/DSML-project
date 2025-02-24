@@ -14,12 +14,12 @@ data['Year'] = data['Date'].dt.year
 
 # Step 2: Map months to Nepali seasons
 season_map = {
-    12: "BASANTA RITU", 1: "BASANTA RITU",
-    2: "GRISHMA RITU", 3: "GRISHMA RITU",
-    4: "BARSHA RITU", 5: "BARSHA RITU",
-    6: "SARAD RITU", 7: "SARAD RITU",
-    8: "Hemanta Ritu", 9: "Hemanta Ritu",
-    10: "Shishir Ritu", 11: "Shishir Ritu"
+    3: "Basanta", 4: "Basanta",
+    5: "Grishma", 6: "Grishma", 
+    7: "Barsha", 8: "Barsha",
+    9: "Sharad", 10: "Sharad",
+    11: "Hemanta", 12: "Hemanta",
+    1: "Shishir", 2: "Shishir"
 }
 data['Season'] = data['Month'].map(season_map)
 
@@ -42,8 +42,7 @@ def save_commodity_seasonal_analysis(commodity_name, df, save_path):
     commodity_data = df[df['Commodity'] == commodity_name]
     
     # Order of seasons
-    season_order = ["BASANTA RITU", "GRISHMA RITU", "BARSHA RITU", 
-                    "SARAD RITU", "Hemanta Ritu", "Shishir Ritu"]
+    season_order = ["Basanta", "Grishma", "Barsha", "Sharad", "Hemanta", "Shishir"]
     
     # Ensure directories exist
     create_directory(f"{save_path}/seasonal_trends_box")
@@ -52,9 +51,13 @@ def save_commodity_seasonal_analysis(commodity_name, df, save_path):
     # Sanitize the commodity name for the file name
     commodity_name_safe = sanitize_filename(commodity_name)
 
+    # Filter the season_order to include only the seasons present in the data
+    present_seasons = commodity_data['Season'].unique()
+    filtered_season_order = [season for season in season_order if season in present_seasons]
+
     # Boxplot
     plt.figure(figsize=(12, 6))
-    sns.boxplot(data=commodity_data, x='Season', y='Average', order=season_order)
+    sns.boxplot(data=commodity_data, x='Season', y='Average', order=filtered_season_order)
     plt.title(f"Box Plot of Average Prices for {commodity_name}", fontsize=16)
     plt.xlabel("Season", fontsize=14)
     plt.ylabel("Average Price", fontsize=14)
@@ -78,8 +81,7 @@ def save_commodity_season_year_analysis(commodity_name, df, save_path):
     commodity_data = df[df['Commodity'] == commodity_name]
     
     # Order of seasons
-    season_order = ["BASANTA RITU", "GRISHMA RITU", "BARSHA RITU", 
-                    "SARAD RITU", "Hemanta Ritu", "Shishir Ritu"]
+    season_order = ["Basanta", "Grishma", "Barsha", "Sharad", "Hemanta", "Shishir"]
     
     # Pivot the data for heatmap
     pivot_data = commodity_data.pivot(index='Year', columns='Season', values='Average').reindex(columns=season_order)
@@ -101,7 +103,7 @@ def save_commodity_season_year_analysis(commodity_name, df, save_path):
     plt.close()
 
 # Example usage: Save plots for all commodities
-save_path = './visualizationFig'  # Path to save the plots
+save_path = './visualizationFig/Seasonal'  # Path to save the plots
 
 # Loop through all unique commodities in the dataset and save the plots for each one
 for commodity_name in data['Commodity'].unique():

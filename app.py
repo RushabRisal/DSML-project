@@ -155,7 +155,7 @@ def calculate_yearly_trends(commodity_name):
 
     # Ensure all seasons are included
     all_seasons = pd.DataFrame(list(seasons.keys()), columns=['Season'])
-    yearly_trends = all_seasons.merge(yearly_trends, on='Season', how='left').fillna(0)
+    yearly_trends = all_seasons.merge(yearly_trends, on='Season', how='left').fillna(np.nan)
     
     # Create a styled dataframe
     def highlight_minmax(x):
@@ -185,6 +185,27 @@ def calculate_yearly_trends(commodity_name):
     plt.xticks(yearly_trends['Year'].unique())
     plt.tight_layout()
     st.pyplot(fig)
+
+def display_saved_figures(commodity_name):
+    vis_dir = "./visualizationFig"
+    if not os.path.exists(vis_dir):
+        st.error("Visualization directory not found.")
+        return
+    
+    # Recursively list all files in the visualization directory
+    files = []
+    for root, _, filenames in os.walk(vis_dir):
+        for filename in filenames:
+            if commodity_name in filename:
+                files.append(os.path.join(root, filename))
+    
+    if not files:
+        st.write(f"No saved figures found for {commodity_name}.")
+        return
+    
+    st.write(f"Saved figures for {commodity_name}:")
+    for file in files:
+        st.image(file, caption=os.path.basename(file))
 
 if st.button("Predict Price"):
     forecast = predict_price(commodity_name, target_date)
@@ -240,6 +261,9 @@ if st.button("Calculate Seasonal Averages"):
 
 if st.button("Calculate Yearly Trends"):
     calculate_yearly_trends(commodity_name)
+
+if st.button("Show Saved Figures"):
+    display_saved_figures(commodity_name)
 
 kmeans = joblib.load("./models/kmeans_model.joblib")
 scaler = joblib.load("./models/scaler.joblib")

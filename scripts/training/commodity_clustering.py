@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 import os
 from joblib import dump
 # Step 1: Load the Dataset
-file_path = "./data/cleanData.csv"
+file_path = "./data/cleanDataAll.csv"
 df = pd.read_csv(file_path)
 
 # Step 2: Aggregate Data by Commodity (Mean of Prices)

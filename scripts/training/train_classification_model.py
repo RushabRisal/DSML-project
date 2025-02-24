@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 import joblib
 
 # Load dataset
-dataframe = pd.read_csv('./data/cleanData.csv')
+dataframe = pd.read_csv('./data/cleanDataAll.csv')
 
 # Prepare the dataset for classification
 dataframe['Price_Fluctuation'] = dataframe['Average'].diff().fillna(0)
